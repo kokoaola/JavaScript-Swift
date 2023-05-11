@@ -10,14 +10,46 @@
 
 import UIKit
 
-class DetailViewController: UIViewController {
+protocol DestinationViewControllerDelegate: AnyObject {
+    func changeProperty(value: String)
+}
 
+
+class DetailViewController: UITableViewController {
+    var dic: [String: String]?
+    var keys: [String]?
+    weak var delegate: DestinationViewControllerDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        title = "Pictures"
-        
+        title = "保存したJavaScript"
+        keys = dic?.keys.sorted() // キーをソートして配列に保存します
     }
+    
+    ///行数の指定
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return keys?.count ?? 0
+    }
+    
+    ///セルの内容の指定
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        ///メモリ節約のために見えなくなったセルの再利用をするよという設定
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Word", for: indexPath)
+        if let key = keys?[indexPath.row] {
+            cell.textLabel?.text = "\(key): \(dic?[key] ?? "")" // キーと値を表示します
+        }
+        return cell
+    }
+    
+    ///セルタップ時の動き
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        if let key = keys?[indexPath.row] {
+            delegate?.changeProperty(value: dic?[key] ?? "")
+            self.navigationController?.popViewController(animated: true)
+        }
+        }
+    }
+    
 
-}

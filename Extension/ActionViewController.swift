@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 
 ///このファイルは自動生成される
 
-class ActionViewController: UIViewController {
+class ActionViewController: UIViewController, DestinationViewControllerDelegate {
     
     /// UITextViewのアウトレット。ユーザーが入力するスクリプトを表示・編集するためのテキストビュー
     @IBOutlet var script: UITextView!
@@ -136,6 +136,8 @@ class ActionViewController: UIViewController {
     }
     
     
+    
+    @objc func adjustForKeyboard(notification: Notification) {
     ///adjustForKeyboard()メソッドは複雑ですが、それはかなり多くの作業を行うためです。まず、Notification型のパラメータを受け取ります。これには、通知の名前と、userInfoと呼ばれる通知固有の情報を含むDictionaryが含まれます。
     
     ///キーボードを扱う場合、このDictionaryにはUIResponder.keyboardFrameEndUserInfoKeyというキーが含まれ、キーボードのアニメーションが終了した後のフレームを知らせます。これはNSValue型になり、CGRect型になります。CGRect構造体は、CGPointとCGSizeの両方を保持するので、矩形を記述するために使用することができます。
@@ -147,7 +149,6 @@ class ActionViewController: UIViewController {
     ///adjustForKeyboard()メソッドで次に行うべきことは、テキストビューのcontentInsetとscrollIndicatorInsetsを調整することです。この2つは、テキストビューの端をくぼませて、制約がビューの端から端まで残っていても、より小さなスペースを占めているように見せるものです。
     
     ///最後に、テキストビューをスクロールさせて、テキスト入力カーソルを表示させます。テキストビューが縮小した場合、このカーソルは画面の外に出てしまうので、スクロールして再び見つけることで、ユーザーエクスペリエンスを損なわないようにしています。
-    @objc func adjustForKeyboard(notification: Notification) {
         guard let keyboardValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue else { return }
         
         let keyboardScreenEndFrame = keyboardValue.cgRectValue
@@ -171,8 +172,9 @@ class ActionViewController: UIViewController {
     
     
     func bbb(_ action: UIAlertAction){
-        print("*****")
+        var dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
         if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
+            vc.dic = dic
             navigationController?.pushViewController(vc, animated: true)
         }
     }
@@ -234,22 +236,36 @@ class ActionViewController: UIViewController {
     
     ///テキストフィールド付きのアラートを表示
     @objc func showTextFieldAlert() {
-        let ac = UIAlertController(title: "Enter answer", message: nil, preferredStyle: .alert)
-
+        var dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
+        let ac = UIAlertController(title: "Script名を入力", message: nil, preferredStyle: .alert)
         ac.addTextField()
-        
-
-        let submitAction = UIAlertAction(title: "Submit", style: .default) { [weak self, weak ac] action in
-            guard let answer = ac?.textFields?[0].text else { return }
-            self?.submit(answer)
+        let submitAction = UIAlertAction(title: "保存", style: .default) { [weak self, weak ac] action in
+            guard let scriptName = ac?.textFields?[0].text else { return }
+            dic[scriptName] = self?.script.text ?? ""
+            self?.submit(dic)
         }
         ac.addAction(submitAction)
         present(ac, animated: true)
     }
     
     
-    func submit(_ answer: String) {
+    func submit(_ dic: [String: String]) {
+        print(dic)
+        defaults.set(dic, forKey: "SavedDict")
         print("OK")
+    }
+    
+    
+    ///このコードでは、遷移先のセルがタップされたときにdelegateプロパティ経由でchangeProperty(value:)メソッドを呼び出します。このdelegateは、SourceViewControllerのインスタンスになります。したがって、このメソッドの呼び出しは、SourceViewControllerのpropertyプロパティの値を変更します。
+    func changeProperty(value: String) {
+        print(value)
+        script.text = value
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let destinationVC = segue.destination as? DetailViewController {
+            destinationVC.delegate = self
+        }
     }
     
 }
