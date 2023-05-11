@@ -31,17 +31,17 @@ class ActionViewController: UIViewController {
         super.viewDidLoad()
         ///done()メソッドは、もともとストーリーボードからアクションとして呼び出される
         ///デフォルトのUIは古いのでコードでUIBarButtonItemを作成し、その代わりにdone()を呼び出すようにしましょう。
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
+        ///実行ボタン
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "実行", style: .plain, target: self, action: #selector(done))
         
         ///左端の＋ボタン
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(test2))
-        
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "menu", style: .plain, target: self, action: #selector(selectAction))
         ///下のボタン
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let refresh = //UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action:#selector(bbb))
-        UIBarButtonItem(title: "保存したScript", style: .plain, target: self, action: #selector(bbb))
-        toolbarItems = [spacer, refresh]
-        navigationController?.isToolbarHidden = false
+        
+        //let refresh = UIBarButtonItem(title: "保存したScript", style: .plain, target: self, action: #selector(bbb))
+        //toolbarItems = [spacer, refresh]
+        //navigationController?.isToolbarHidden = false
         
         ///xtensionContext=親アプリ(safari)とのやり取りを制御する
         ///inputItemsは親アプリがエクステンションに送るデータの配列
@@ -170,24 +170,24 @@ class ActionViewController: UIViewController {
     }
     
     
-    @objc func bbb(){
+    func bbb(_ action: UIAlertAction){
         print("*****")
         if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
             navigationController?.pushViewController(vc, animated: true)
         }
-        
     }
     
     
-    @objc func test2(){
-        let alert = UIAlertController(title: "JavaScriptを実行",
+    @objc func selectAction(){
+        let alert = UIAlertController(title: "メニュー",
                                       message: "実行するアクションを選択してください。",
                                       preferredStyle: UIAlertController.Style.alert)
         
         alert.addAction(UIAlertAction(title: "スクリーンサイズを取得", style: .default, handler:{[weak self] action in
             let item = NSExtensionItem()
             let argument: NSDictionary = ["customJavaScript": "alert(`縦` + screen.height + `\n横` + screen.width)"]
-            //let argument: NSDictionary = ["customJavaScript": "alert(`縦` + screen.height + `\n横` + screen.width)"]
+
+            
             let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
             let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
             item.attachments = [customJavaScript]
@@ -195,25 +195,14 @@ class ActionViewController: UIViewController {
             self?.extensionContext?.completeRequest(returningItems: [item])
         }))
         
-        alert.addAction(UIAlertAction(title: "Helloを取得", style: .default, handler:{[weak self] action in
-            let item = NSExtensionItem()
-            let argument: NSDictionary = ["customJavaScript": "document.write(`Hello!`);"]
-            //let argument: NSDictionary = ["customJavaScript": "alert(`縦` + screen.height + `\n横` + screen.width)"]
-            let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
-            let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
-            item.attachments = [customJavaScript]
-            
-            self?.extensionContext?.completeRequest(returningItems: [item])
-        }))
+        alert.addAction(UIAlertAction(title: "保存したScript一覧", style: .default, handler: bbb))
         
         alert.addAction(UIAlertAction(title: "おみくじ", style: .default, handler:{[weak self] action in
             let item = NSExtensionItem()
             let argument: NSDictionary = ["customJavaScript": "const omi = [`大吉`,`中吉`,`小吉`,`吉`,`凶`,`カトキチ`]; alert(`今日の運勢：` + omi[Math.floor(Math.random() * 5)]);"]
-            //let argument: NSDictionary = ["customJavaScript": "alert(`縦` + screen.height + `\n横` + screen.width)"]
             let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
             let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
             item.attachments = [customJavaScript]
-            
             self?.extensionContext?.completeRequest(returningItems: [item])
         }))
         
