@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 
 ///このファイルは自動生成される
 
-class ActionViewController: UIViewController, DestinationViewControllerDelegate {
+class ActionViewController: UIViewController {
     
     /// UITextViewのアウトレット。ユーザーが入力するスクリプトを表示・編集するためのテキストビュー
     @IBOutlet var script: UITextView!
@@ -175,6 +175,7 @@ class ActionViewController: UIViewController, DestinationViewControllerDelegate 
         var dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
         if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
             vc.dic = dic
+            vc.koakoa = self
             navigationController?.pushViewController(vc, animated: true)
         }
     }
@@ -245,6 +246,8 @@ class ActionViewController: UIViewController, DestinationViewControllerDelegate 
             self?.submit(dic)
         }
         ac.addAction(submitAction)
+        let cansel = UIAlertAction(title: "cansel", style: .cancel)
+        ac.addAction(cansel)
         present(ac, animated: true)
     }
     
@@ -260,11 +263,13 @@ class ActionViewController: UIViewController, DestinationViewControllerDelegate 
     func changeProperty(value: String) {
         print(value)
         script.text = value
+        script.reloadInputViews()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        print("deledele")
         if let destinationVC = segue.destination as? DetailViewController {
-            destinationVC.delegate = self
+            destinationVC.koakoa = self
         }
     }
     

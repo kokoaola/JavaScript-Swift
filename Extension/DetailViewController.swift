@@ -10,15 +10,15 @@
 
 import UIKit
 
-protocol DestinationViewControllerDelegate: AnyObject {
-    func changeProperty(value: String)
-}
+//protocol DestinationViewControllerDelegate: AnyObject {
+//    func changeProperty(value: String)
+//}
 
 
 class DetailViewController: UITableViewController {
     var dic: [String: String]?
     var keys: [String]?
-    weak var delegate: DestinationViewControllerDelegate?
+    weak var koakoa: ActionViewController?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -46,7 +46,7 @@ class DetailViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         if let key = keys?[indexPath.row] {
-            delegate?.changeProperty(value: dic?[key] ?? "")
+            koakoa?.changeProperty(value: "aaa")
             self.navigationController?.popViewController(animated: true)
         }
         }
