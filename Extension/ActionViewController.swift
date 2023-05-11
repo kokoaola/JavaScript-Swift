@@ -35,7 +35,7 @@ class ActionViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "実行", style: .plain, target: self, action: #selector(done))
         
         ///左端の＋ボタン
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(showTextFieldAlert))
         ///下のボタン
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         
@@ -178,6 +178,7 @@ class ActionViewController: UIViewController {
     }
     
     
+    ///メニューアラート
     @objc func selectAction(){
         let alert = UIAlertController(title: "メニュー",
                                       message: "実行するアクションを選択してください。",
@@ -229,5 +230,27 @@ class ActionViewController: UIViewController {
         
         extensionContext?.completeRequest(returningItems: [item])
     }
+    
+    
+    ///テキストフィールド付きのアラートを表示
+    @objc func showTextFieldAlert() {
+        let ac = UIAlertController(title: "Enter answer", message: nil, preferredStyle: .alert)
+
+        ac.addTextField()
+        
+
+        let submitAction = UIAlertAction(title: "Submit", style: .default) { [weak self, weak ac] action in
+            guard let answer = ac?.textFields?[0].text else { return }
+            self?.submit(answer)
+        }
+        ac.addAction(submitAction)
+        present(ac, animated: true)
+    }
+    
+    
+    func submit(_ answer: String) {
+        print("OK")
+    }
+    
 }
 
