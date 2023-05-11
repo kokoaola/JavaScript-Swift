@@ -35,13 +35,13 @@ class ActionViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "実行", style: .plain, target: self, action: #selector(done))
         
         ///左端の＋ボタン
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "menu", style: .plain, target: self, action: #selector(selectAction))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: nil, action: nil)
         ///下のボタン
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         
-        //let refresh = UIBarButtonItem(title: "保存したScript", style: .plain, target: self, action: #selector(bbb))
-        //toolbarItems = [spacer, refresh]
-        //navigationController?.isToolbarHidden = false
+        let botommRightButton = UIBarButtonItem(title: "menu", style: .plain, target: self, action: #selector(selectAction))
+        toolbarItems = [spacer, botommRightButton]
+        navigationController?.isToolbarHidden = false
         
         ///xtensionContext=親アプリ(safari)とのやり取りを制御する
         ///inputItemsは親アプリがエクステンションに送るデータの配列
