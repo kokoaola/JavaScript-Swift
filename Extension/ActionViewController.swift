@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 
 ///このファイルは自動生成される
 
-class ActionViewController: UIViewController {
+class ActionViewController: UIViewController, DestinationViewControllerDelegate {
     
     /// UITextViewのアウトレット。ユーザーが入力するスクリプトを表示・編集するためのテキストビュー
     @IBOutlet var script: UITextView!
@@ -35,13 +35,8 @@ class ActionViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "実行", style: .plain, target: self, action: #selector(done))
         
         ///左端の＋ボタン
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(showTextFieldAlert))
-        ///下のボタン
-        let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        
-        let botommRightButton = UIBarButtonItem(title: "menu", style: .plain, target: self, action: #selector(selectAction))
-        toolbarItems = [spacer, botommRightButton]
-        navigationController?.isToolbarHidden = false
+        ///
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(selectAction))
         
         ///xtensionContext=親アプリ(safari)とのやり取りを制御する
         ///inputItemsは親アプリがエクステンションに送るデータの配列
@@ -52,8 +47,8 @@ class ActionViewController: UIViewController {
             if let itemProvider = inputItem.attachments?.first {
                 /// アイテムをロード
                 ///クロージャを使っているので、このコードは非同期に実行されることがわかります。つまり、アイテムプロバイダがデータの読み込みと送信に追われている間、このメソッドは実行され続けるのです。
-                ///クロージャの内部では、強参照サイクルを避けるために通常の [weak self]と2つのパラメータを受け取る必要があります。
-                ///loadItem(forTypeIdentifier:)が完了すると、クロージャが呼び出され、そのデータを処理することができます。これは非同期で実行されるので、コードがSafariにロックされることはありません。
+                ///強参照サイクルを避けるために[weak self]と2つのパラメータを受け取る
+                ///loadItem(forTypeIdentifier:)が完了すると、クロージャが呼び出され、そのデータを処理することができます
                 itemProvider.loadItem(forTypeIdentifier: kUTTypePropertyList as String) { [weak self] (dict, error) in
 
                     
@@ -171,72 +166,21 @@ class ActionViewController: UIViewController {
     }
     
     
-    func bbb(_ action: UIAlertAction){
-        var dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
+    func showDetailView(_ action: UIAlertAction){
+        if defaults.object(forKey:"SavedDict") == nil{
+            let dic = ["おみくじ":"const omi = [`大吉`,`中吉`,`小吉`,`吉`,`凶`,`カトキチ`]; alert(`今日の運勢：` + omi[Math.floor(Math.random() * 5)]);", "スクリーンサイズを取得": "alert(`縦` + screen.height + `\n横` + screen.width)"]
+            defaults.set(dic, forKey: "SavedDict")
+        }
+        
+        let dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
         if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
             vc.dic = dic
-            vc.koakoa = self
+            vc.delegate = self
             navigationController?.pushViewController(vc, animated: true)
         }
     }
     
-    
-    ///メニューアラート
-    @objc func selectAction(){
-        let alert = UIAlertController(title: "メニュー",
-                                      message: "実行するアクションを選択してください。",
-                                      preferredStyle: UIAlertController.Style.alert)
-        
-        alert.addAction(UIAlertAction(title: "スクリーンサイズを取得", style: .default, handler:{[weak self] action in
-            let item = NSExtensionItem()
-            let argument: NSDictionary = ["customJavaScript": "alert(`縦` + screen.height + `\n横` + screen.width)"]
-
-            
-            let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
-            let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
-            item.attachments = [customJavaScript]
-            
-            self?.extensionContext?.completeRequest(returningItems: [item])
-        }))
-        
-        alert.addAction(UIAlertAction(title: "保存したScript一覧", style: .default, handler: bbb))
-        
-        alert.addAction(UIAlertAction(title: "おみくじ", style: .default, handler:{[weak self] action in
-            let item = NSExtensionItem()
-            let argument: NSDictionary = ["customJavaScript": "const omi = [`大吉`,`中吉`,`小吉`,`吉`,`凶`,`カトキチ`]; alert(`今日の運勢：` + omi[Math.floor(Math.random() * 5)]);"]
-            let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
-            let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
-            item.attachments = [customJavaScript]
-            self?.extensionContext?.completeRequest(returningItems: [item])
-        }))
-        
-        alert.addAction(UIAlertAction(title: "キャンセル", style: .destructive, handler: nil))
-        //alert.addAction(UIAlertAction(title: "Help", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
-    }
-    
-    @IBAction func getScreenSize() {
-        
-        ///アイテムをホストする新しいNSExtensionItemオブジェクトを作成します。
-        ///キー "customJavaScript" とスクリプトの値を含む辞書を作成します。
-        ///その辞書を、キー NSExtensionJavaScriptFinalizeArgumentKey を持つ別の辞書に入れる。
-        ///大きな辞書を、型識別子 kUTTypePropertyList を持つ NSItemProvider オブジェクトの中に包みます。
-        ///その NSItemProvider を NSExtensionItem にアタッチメントとして配置します。
-        ///completeRequest(returningItems:)を呼び、NSExtensionItemを返す。
-        
-        let item = NSExtensionItem()
-        let argument: NSDictionary = ["customJavaScript": "alert(1)"]
-        //let argument: NSDictionary = ["customJavaScript": "alert(`縦` + screen.height + `\n横` + screen.width)"]
-        let webDictionary: NSDictionary = [NSExtensionJavaScriptFinalizeArgumentKey: argument]
-        let customJavaScript = NSItemProvider(item: webDictionary, typeIdentifier: kUTTypePropertyList as String)
-        item.attachments = [customJavaScript]
-        
-        extensionContext?.completeRequest(returningItems: [item])
-    }
-    
-    
-    ///テキストフィールド付きのアラートを表示
-    @objc func showTextFieldAlert() {
+    func showTextFieldAlert(_ action: UIAlertAction){
         var dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
         let ac = UIAlertController(title: "Script名を入力", message: nil, preferredStyle: .alert)
         ac.addTextField()
@@ -252,6 +196,21 @@ class ActionViewController: UIViewController {
     }
     
     
+    ///メニューアラート
+    @objc func selectAction(){
+        let alert = UIAlertController(title: "メニュー",
+                                      message: "実行するアクションを選択してください。",
+                                      preferredStyle: UIAlertController.Style.alert)
+        
+        alert.addAction(UIAlertAction(title: "保存したScript一覧", style: .default, handler: showDetailView))
+        
+        alert.addAction(UIAlertAction(title: "名前をつけて保存", style: .default, handler: showTextFieldAlert))
+        
+        alert.addAction(UIAlertAction(title: "キャンセル", style: .destructive, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    
     func submit(_ dic: [String: String]) {
         print(dic)
         defaults.set(dic, forKey: "SavedDict")
@@ -264,13 +223,6 @@ class ActionViewController: UIViewController {
         print(value)
         script.text = value
         script.reloadInputViews()
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        print("deledele")
-        if let destinationVC = segue.destination as? DetailViewController {
-            destinationVC.koakoa = self
-        }
     }
     
 }

@@ -10,15 +10,15 @@
 
 import UIKit
 
-//protocol DestinationViewControllerDelegate: AnyObject {
-//    func changeProperty(value: String)
-//}
+protocol DestinationViewControllerDelegate: AnyObject {
+    func changeProperty(value: String)
+}
 
 
 class DetailViewController: UITableViewController {
     var dic: [String: String]?
     var keys: [String]?
-    weak var koakoa: ActionViewController?
+    weak var delegate: DestinationViewControllerDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,7 +37,7 @@ class DetailViewController: UITableViewController {
         ///メモリ節約のために見えなくなったセルの再利用をするよという設定
         let cell = tableView.dequeueReusableCell(withIdentifier: "Word", for: indexPath)
         if let key = keys?[indexPath.row] {
-            cell.textLabel?.text = "\(key): \(dic?[key] ?? "")" // キーと値を表示します
+            cell.textLabel?.text = key // キーと値を表示します
         }
         return cell
     }
@@ -46,7 +46,7 @@ class DetailViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         if let key = keys?[indexPath.row] {
-            koakoa?.changeProperty(value: "aaa")
+            delegate?.changeProperty(value: dic?[key] ?? "")
             self.navigationController?.popViewController(animated: true)
         }
         }
