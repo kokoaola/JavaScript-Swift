@@ -59,7 +59,6 @@ class ActionViewController: UIViewController, DestinationViewControllerDelegate 
                     ///この辞書には、JavaScriptから送信したデータ以外は何も入っておらず、NSExtensionJavaScriptPreprocessingResultsKeyという特別なキーに格納されています。そこで、その値を辞書から取り出して、javaScriptValuesという値に入れるのです。
                    ///JavaScriptからデータの辞書を送ったので、javaScriptValuesを再びNSDictionaryとしてタイプキャストして、キーで値を引き出せるようにしています。
                     guard let javaScriptValues = itemDictionary[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary else { return }
-                    print(javaScriptValues)
                     
                     ///javaScriptValues辞書から2つのプロパティを設定し、それらをStringとしてタイプキャストしています
                     self?.pageTitle = javaScriptValues["title"] as? String ?? ""
@@ -158,28 +157,26 @@ class ActionViewController: UIViewController, DestinationViewControllerDelegate 
         script.scrollIndicatorInsets = script.contentInset
         
         
-        ///テキストビューのインセットの設定はUIEdgeInsets構造体を使用して行われ、4つのエッジすべてのインセットが必要です。ここでは、テキストビューのコンテンツのインセットをscrollIndicatorInsetsに使用して、時間を節約しています。
-        
+        ///テキストビューのインセットの設定はUIEdgeInsets構造体を使用し、4つのエッジすべてのインセットが必要
+        ///ここでは、時間を節約のためテキストビューのコンテンツのインセットをscrollIndicatorInsetsに設定
         ///UIKeyboardWillHideのチェックを入れることで、ハードウェアキーボードが接続されている場合に、インセットをゼロに設定
         let selectedRange = script.selectedRange
         script.scrollRangeToVisible(selectedRange)
     }
     
-    
-    func showDetailView(_ action: UIAlertAction){
-        if defaults.object(forKey:"SavedDict") == nil{
-            let dic = ["おみくじ":"const omi = [`大吉`,`中吉`,`小吉`,`吉`,`凶`,`カトキチ`]; alert(`今日の運勢：` + omi[Math.floor(Math.random() * 5)]);", "スクリーンサイズを取得": "alert(`縦` + screen.height + `\n横` + screen.width)"]
-            defaults.set(dic, forKey: "SavedDict")
-        }
-        
-        let dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
-        if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
-            vc.dic = dic
-            vc.delegate = self
-            navigationController?.pushViewController(vc, animated: true)
-        }
+    ///メニューアラート
+    @objc func selectAction(){
+        let alert = UIAlertController(title: "メニュー",
+                                      message: "アクションを選択してください。",
+                                      preferredStyle: UIAlertController.Style.alert)
+        alert.addAction(UIAlertAction(title: "名前をつけて保存", style: .default, handler: showTextFieldAlert))
+        alert.addAction(UIAlertAction(title: "保存したScript一覧", style: .default, handler: showDetailView))
+        alert.addAction(UIAlertAction(title: "キャンセル", style: .destructive, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
     
+    
+    ///TextField入力
     func showTextFieldAlert(_ action: UIAlertAction){
         var dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
         let ac = UIAlertController(title: "Script名を入力", message: nil, preferredStyle: .alert)
@@ -196,21 +193,22 @@ class ActionViewController: UIViewController, DestinationViewControllerDelegate 
     }
     
     
-    ///メニューアラート
-    @objc func selectAction(){
-        let alert = UIAlertController(title: "メニュー",
-                                      message: "実行するアクションを選択してください。",
-                                      preferredStyle: UIAlertController.Style.alert)
+    ///画面遷移ボタン
+    func showDetailView(_ action: UIAlertAction){
+        if defaults.object(forKey:"SavedDict") == nil{
+            let dic = ["おみくじ":"const omi = [`大吉`,`中吉`,`小吉`,`吉`,`凶`,`カトキチ`]; alert(`今日の運勢：` + omi[Math.floor(Math.random() * 5)]);", "スクリーンサイズを取得": "alert(`縦` + screen.height + `\n横` + screen.width)"]
+            defaults.set(dic, forKey: "SavedDict")
+        }
         
-        alert.addAction(UIAlertAction(title: "保存したScript一覧", style: .default, handler: showDetailView))
-        
-        alert.addAction(UIAlertAction(title: "名前をつけて保存", style: .default, handler: showTextFieldAlert))
-        
-        alert.addAction(UIAlertAction(title: "キャンセル", style: .destructive, handler: nil))
-        present(alert, animated: true, completion: nil)
+        if let vc = storyboard?.instantiateViewController(withIdentifier: "Detail") as? DetailViewController {
+            vc.dic = defaults.object(forKey:"SavedDict") as? [String: String] ?? [:]
+            vc.delegate = self
+            navigationController?.pushViewController(vc, animated: true)
+        }
     }
+
     
-    
+    ///TextField入力完了後のアクション
     func submit(_ dic: [String: String]) {
         print(dic)
         defaults.set(dic, forKey: "SavedDict")
